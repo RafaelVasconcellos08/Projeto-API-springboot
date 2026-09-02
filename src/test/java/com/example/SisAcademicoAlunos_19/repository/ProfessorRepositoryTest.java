@@ -1,6 +1,5 @@
 package com.example.SisAcademicoAlunos_19.repository;
 
-import com.example.SisAcademicoAlunos_19.model.Disciplina;
 import com.example.SisAcademicoAlunos_19.model.Professor;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -6,9 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 
 @Entity
 @Table(name="disciplina")

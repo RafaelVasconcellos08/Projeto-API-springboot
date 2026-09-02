@@ -1,7 +1,6 @@
 package com.example.SisAcademicoAlunos_19.repository;
 
 import com.example.SisAcademicoAlunos_19.model.Aluno;
-import com.example.SisAcademicoAlunos_19.model.Avaliacao;
 import com.example.SisAcademicoAlunos_19.model.Curso;
 import com.example.SisAcademicoAlunos_19.model.Matricula;
 import org.junit.jupiter.api.Test;

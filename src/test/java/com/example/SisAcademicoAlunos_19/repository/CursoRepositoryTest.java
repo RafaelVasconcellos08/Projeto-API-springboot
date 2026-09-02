@@ -2,10 +2,8 @@ package com.example.SisAcademicoAlunos_19.repository;
 
 import com.example.SisAcademicoAlunos_19.model.Curso;
 import com.example.SisAcademicoAlunos_19.model.Departamento;
-import com.example.SisAcademicoAlunos_19.model.Disciplina;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.jdbc.metadata.DataSourcePoolMetadataProvider;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.List;
