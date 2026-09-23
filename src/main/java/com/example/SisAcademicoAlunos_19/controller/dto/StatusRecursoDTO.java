@@ -1,13 +1,13 @@
 package com.example.SisAcademicoAlunos_19.controller.dto;
 
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-public record StatusDTO(
+public record StatusRecursoDTO(
 
         Integer codigo,
 
-        @NotBlank(message = "Campo obrigatório")
+        @NotNull(message = "Campo obrigatório")
         @Size(min = 15, max = 20,
                 message = "Quantidade de caracteres incorreta!")
         String nome

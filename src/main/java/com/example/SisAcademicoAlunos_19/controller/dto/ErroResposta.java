@@ -9,7 +9,6 @@ public record ErroResposta(
         String mensagem,
         List<ErroCampo> erros
 ) {
-
     public static ErroResposta respostaPadrao(String mensagem) {
         return new ErroResposta(
                 HttpStatus.BAD_REQUEST.value(),

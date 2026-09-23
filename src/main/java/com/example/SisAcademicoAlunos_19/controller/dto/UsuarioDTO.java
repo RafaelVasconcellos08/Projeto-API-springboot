@@ -1,10 +1,9 @@
 package com.example.SisAcademicoAlunos_19.controller.dto;
 
+import com.example.SisAcademicoAlunos_19.validator.CPFValido;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Past;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
@@ -13,30 +12,39 @@ public record UsuarioDTO(
 
         Integer id,
 
-        @NotBlank(message = "CPF é obrigatório")
-        String cpf,
+        @NotNull(message = "Campo obrigatório")
+        @Size(min = 11, max = 11, message = "CPF inválido")
+        @CPFValido(message = "CPF inválido")
+        String CPF,
 
-        @NotBlank(message = "Nome completo é obrigatório")
-        @Size(min = 3, max = 150, message = "Nome deve ter entre 3 e 150 caracteres")
-        String nomeCompleto,
+        @NotNull(message = "Campo obrigatório")
+        @Size(
+                min = 10,
+                max = 80,
+                message = "Quantidade de caracteres incorreta!"
+        )
+        String nome,
 
-        @NotNull(message = "Data de aniversário é obrigatória")
-        @Past(message = "Data de aniversário deve ser uma data passada")
-        LocalDate dataAniversario,
+        @NotNull(message = "Campo obrigatório")
+        @JsonFormat(pattern = "dd/MM/yyyy")
+        LocalDate aniversario,
 
-        @NotBlank(message = "Celular é obrigatório")
+        @NotNull(message = "Campo obrigatório")
         String celular,
 
-        @NotBlank(message = "E-mail é obrigatório")
+        @NotNull(message = "Campo obrigatório")
+        @Size(
+                min = 15,
+                max = 80,
+                message = "Quantidade de caracteres incorreta!"
+        )
         @Email(message = "E-mail inválido")
         String email,
 
-        @NotBlank(message = "Login é obrigatório")
-        @Size(min = 3, max = 50, message = "Login deve ter entre 3 e 50 caracteres")
+        @NotNull(message = "Campo obrigatório")
         String login,
 
-        @NotBlank(message = "Senha é obrigatória")
-        @Size(min = 6, max = 100, message = "Senha deve ter entre 6 e 100 caracteres")
+        @NotNull(message = "Campo obrigatório")
         String senha
 ) {
 }

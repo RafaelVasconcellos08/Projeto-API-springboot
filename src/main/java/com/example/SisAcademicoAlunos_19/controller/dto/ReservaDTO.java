@@ -1,5 +1,6 @@
 package com.example.SisAcademicoAlunos_19.controller.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
@@ -9,25 +10,30 @@ public record ReservaDTO(
 
         Integer id,
 
-        @NotNull(message = "Data inicial é obrigatória")
+        @NotNull(message = "Campo obrigatório")
+        @JsonFormat(pattern = "dd/MM/yyyy")
         LocalDate dataInicial,
 
-        @NotNull(message = "Data final é obrigatória")
+        @NotNull(message = "Campo obrigatório")
+        @JsonFormat(pattern = "dd/MM/yyyy")
         LocalDate dataFinal,
 
-        @NotNull(message = "Hora inicial é obrigatória")
+        @NotNull(message = "Campo obrigatório")
+        @JsonFormat(pattern = "HH:mm:ss")
         LocalTime horaInicial,
 
-        @NotNull(message = "Hora final é obrigatória")
+        @NotNull(message = "Campo obrigatório")
+        @JsonFormat(pattern = "HH:mm:ss")
         LocalTime horaFinal,
 
-        @NotNull(message = "Usuário é obrigatório")
+        @NotNull(message = "Campo obrigatório")
         Integer usuarioId,
 
-        @NotNull(message = "Recurso é obrigatório")
-        Integer recursoId,
+        Integer laboratorioCodigo,
 
-        @NotNull(message = "Status é obrigatório")
-        Integer statusId
+        Integer salaCodigo,
+
+        @NotNull(message = "Campo obrigatório")
+        Integer statusCodigo
 ) {
 }

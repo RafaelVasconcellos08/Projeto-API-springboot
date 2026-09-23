@@ -1,60 +1,145 @@
 package com.example.SisAcademicoAlunos_19.controller;
 
 import com.example.SisAcademicoAlunos_19.controller.dto.LaboratorioDTO;
+import com.example.SisAcademicoAlunos_19.model.Laboratorio;
+import com.example.SisAcademicoAlunos_19.service.LaboratorioService;
+import com.example.SisAcademicoAlunos_19.service.StatusService;
+import com.example.SisAcademicoAlunos_19.mapper.LaboratorioMapper;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/laboratorios")
-public class LaboratorioController {
+public class LaboratorioController
+{
+    private final LaboratorioService laboratorioService;
+    private final LaboratorioMapper laboratorioMapper;
+    private final StatusService statusService;
 
-    // POST - Cadastrar laboratório
+    public LaboratorioController(
+            LaboratorioService laboratorioService,
+            LaboratorioMapper laboratorioMapper,
+            StatusService statusService)
+    {
+        this.laboratorioService = laboratorioService;
+        this.laboratorioMapper = laboratorioMapper;
+        this.statusService = statusService;
+    }
+
+
     @PostMapping
     public ResponseEntity<Object> cadastrarLaboratorio(
-            @RequestBody @Valid LaboratorioDTO laboratorioDTO) {
+            @RequestBody @Valid LaboratorioDTO laboratorioDTO)
+    {
+        Laboratorio laboratorio =
+                laboratorioMapper.paraEntidade(laboratorioDTO);
+
+        var statusOptional =
+                statusService.pegarStatusRecursoPorCodigo(
+                        laboratorioDTO.statusCodigo());
+
+        if (statusOptional.isEmpty())
+        {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body("Status do recurso não encontrado.");
+        }
+
+        laboratorio.setStatus(statusOptional.get());
+
+        laboratorioService.inserirLaboratorio(laboratorio);
 
         return new ResponseEntity<>(
-                "Laboratório cadastrado com sucesso!",
+                laboratorioMapper.paraDTO(laboratorio),
                 HttpStatus.CREATED
         );
     }
 
-    // GET - Buscar laboratório por ID
-    @GetMapping("/{id}")
-    public ResponseEntity<LaboratorioDTO> buscarLaboratorioPorId(
-            @PathVariable Integer id) {
 
-        return ResponseEntity.notFound().build();
-    }
 
-    // GET - Consultar laboratórios por nome, capacidade e localização
     @GetMapping
     public ResponseEntity<List<LaboratorioDTO>> pesquisarLaboratorios(
-            @RequestParam(required = false) String nome,
-            @RequestParam(required = false) Integer capacidade,
-            @RequestParam(required = false) String localizacao) {
+            @RequestParam(value = "nome", required = false)
+            String nome,
 
-        return ResponseEntity.ok(List.of());
+            @RequestParam(value = "capacidade", required = false)
+            Integer capacidade,
+
+            @RequestParam(value = "localizacao", required = false)
+            String localizacao,
+
+            @RequestParam(value = "statusCodigo", required = false)
+            Integer statusCodigo)
+    {
+        List<Laboratorio> resultado =
+                laboratorioService.pesquisarLaboratorios(
+                        nome,
+                        capacidade,
+                        localizacao,
+                        statusCodigo
+                );
+
+        List<LaboratorioDTO> lista = resultado
+                .stream()
+                .map(laboratorioMapper::paraDTO)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(lista);
     }
 
-    // PUT - Atualizar laboratório
-    @PutMapping("/{id}")
+
+
+    @GetMapping("/{codigo}")
+    public ResponseEntity<LaboratorioDTO> buscarLaboratorioPorCodigo(
+            @PathVariable Integer codigo)
+    {
+        return laboratorioService
+                .pegarDadosLaboratorioPorCodigo(codigo)
+                .map(laboratorioMapper::paraDTO)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+
+    @PutMapping("/{codigo}")
     public ResponseEntity<Object> atualizarLaboratorio(
-            @PathVariable Integer id,
-            @RequestBody @Valid LaboratorioDTO laboratorioDTO) {
+            @PathVariable Integer codigo,
+            @RequestBody @Valid LaboratorioDTO laboratorioDTO)
+    {
+        var laboratorioOptional =
+                laboratorioService.pegarDadosLaboratorioPorCodigo(codigo);
 
-        return ResponseEntity.ok().build();
-    }
+        if (laboratorioOptional.isEmpty())
+        {
+            return ResponseEntity.notFound().build();
+        }
 
-    // DELETE - Excluir laboratório
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Object> excluirLaboratorio(
-            @PathVariable Integer id) {
+        var statusOptional =
+                statusService.pegarStatusRecursoPorCodigo(
+                        laboratorioDTO.statusCodigo());
 
-        return ResponseEntity.noContent().build();
+        if (statusOptional.isEmpty())
+        {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body("Status do recurso não encontrado.");
+        }
+
+        Laboratorio laboratorio =
+                laboratorioMapper.paraEntidade(laboratorioDTO);
+
+        laboratorio.setCodigo(codigo);
+        laboratorio.setStatus(statusOptional.get());
+
+        laboratorioService.atualizarLaboratorio(laboratorio);
+
+        return ResponseEntity.ok(
+                laboratorioMapper.paraDTO(laboratorio)
+        );
     }
 }

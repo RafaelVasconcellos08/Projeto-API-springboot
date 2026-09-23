@@ -9,29 +9,14 @@ import java.util.Optional;
 
 public interface UsuarioRepository extends JpaRepository<Usuario, Integer>
 {
-    // Pesquisar usuário por CPF
-    Optional<Usuario> findByCpf(String cpf);
+    Optional<Usuario> findByCPF(String CPF);
 
-    // Pesquisar usuário por e-mail
+    List<Usuario> findByNome(String nome);
+
     Optional<Usuario> findByEmail(String email);
 
-    // Pesquisar usuário por login
+    List<Usuario> findByAniversario(LocalDate aniversario);
+
     Optional<Usuario> findByLogin(String login);
 
-    // Pesquisar usuários por data de aniversário
-    List<Usuario> findByDataAniversario(LocalDate dataAniversario);
-
-    // Pesquisar usuários por e-mail e data de aniversário
-    List<Usuario> findByEmailAndDataAniversario(
-            String email,
-            LocalDate dataAniversario);
-
-    // Verificar se já existe usuário com determinado CPF
-    boolean existsByCpf(String cpf);
-
-    // Verificar se já existe usuário com determinado e-mail
-    boolean existsByEmail(String email);
-
-    // Verificar se já existe usuário com determinado login
-    boolean existsByLogin(String login);
 }
