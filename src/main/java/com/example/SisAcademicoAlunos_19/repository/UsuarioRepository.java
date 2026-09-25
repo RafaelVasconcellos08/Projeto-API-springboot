@@ -18,5 +18,4 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer>
     List<Usuario> findByAniversario(LocalDate aniversario);
 
     Optional<Usuario> findByLogin(String login);
-
 }

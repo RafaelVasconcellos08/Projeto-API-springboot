@@ -2,14 +2,14 @@ package com.example.SisAcademicoAlunos_19.controller;
 
 import com.example.SisAcademicoAlunos_19.controller.dto.LoginDTO;
 import com.example.SisAcademicoAlunos_19.controller.dto.UsuarioDTO;
+import com.example.SisAcademicoAlunos_19.controller.dto.UsuarioRespostaDTO;
+import com.example.SisAcademicoAlunos_19.mapper.UsuarioMapper;
 import com.example.SisAcademicoAlunos_19.model.Usuario;
 import com.example.SisAcademicoAlunos_19.service.UsuarioService;
-import com.example.SisAcademicoAlunos_19.mapper.UsuarioMapper;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -30,15 +30,22 @@ public class UsuarioController
         this.usuarioMapper = usuarioMapper;
     }
 
+
+    // ==========================================================
+    // POST - CADASTRAR USUÁRIO
+    // ==========================================================
+
     @PostMapping
     public ResponseEntity<Object> cadastrarUsuario(
             @RequestBody @Valid UsuarioDTO usuarioDTO)
     {
-        Usuario usuario = usuarioMapper.paraEntidade(usuarioDTO);
+        Usuario usuario =
+                usuarioMapper.paraEntidade(usuarioDTO);
 
         usuarioService.inserirUsuario(usuario);
 
-        UsuarioDTO resposta = usuarioMapper.paraDTO(usuario);
+        UsuarioRespostaDTO resposta =
+                usuarioMapper.paraRespostaDTO(usuario);
 
         return new ResponseEntity<>(
                 resposta,
@@ -47,9 +54,13 @@ public class UsuarioController
     }
 
 
+    // ==========================================================
+    // GET - PESQUISAR USUÁRIOS
+    // CPF, nome, e-mail e aniversário
+    // ==========================================================
 
     @GetMapping
-    public ResponseEntity<List<UsuarioDTO>> pesquisarUsuarios(
+    public ResponseEntity<List<UsuarioRespostaDTO>> pesquisarUsuarios(
             @RequestParam(value = "CPF", required = false)
             String CPF,
 
@@ -60,38 +71,59 @@ public class UsuarioController
             String email,
 
             @RequestParam(value = "aniversario", required = false)
-            @DateTimeFormat(pattern = "dd/MM/yyyy")
-            LocalDate aniversario)
+            String aniversario)
     {
+        LocalDate dataAniversario = null;
+
+        if (aniversario != null)
+        {
+            dataAniversario =
+                    LocalDate.parse(
+                            aniversario,
+                            java.time.format.DateTimeFormatter.ofPattern(
+                                    "dd/MM/yyyy"
+                            )
+                    );
+        }
+
         List<Usuario> resultado =
                 usuarioService.pesquisarUsuarios(
                         CPF,
                         nome,
                         email,
-                        aniversario
+                        dataAniversario
                 );
 
-        List<UsuarioDTO> lista = resultado
+        List<UsuarioRespostaDTO> lista = resultado
                 .stream()
-                .map(usuarioMapper::paraDTO)
+                .map(usuarioMapper::paraRespostaDTO)
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(lista);
     }
 
 
+    // ==========================================================
+    // GET - BUSCAR USUÁRIO POR ID
+    // ==========================================================
 
     @GetMapping("/{id}")
-    public ResponseEntity<UsuarioDTO> buscarUsuarioPorId(
+    public ResponseEntity<UsuarioRespostaDTO> buscarUsuarioPorId(
             @PathVariable Integer id)
     {
-        return usuarioService.pegarDadosUsuarioPorId(id)
-                .map(usuarioMapper::paraDTO)
+        return usuarioService
+                .pegarDadosUsuarioPorId(id)
+                .map(usuarioMapper::paraRespostaDTO)
                 .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElseGet(() ->
+                        ResponseEntity.notFound().build()
+                );
     }
 
 
+    // ==========================================================
+    // PUT - ATUALIZAR USUÁRIO
+    // ==========================================================
 
     @PutMapping("/{id}")
     public ResponseEntity<Object> atualizarUsuario(
@@ -106,19 +138,22 @@ public class UsuarioController
             return ResponseEntity.notFound().build();
         }
 
-        Usuario usuario = usuarioMapper.paraEntidade(usuarioDTO);
+        Usuario usuario =
+                usuarioMapper.paraEntidade(usuarioDTO);
 
         usuario.setId(id);
 
         usuarioService.atualizarUsuario(usuario);
 
-        UsuarioDTO resposta = usuarioMapper.paraDTO(usuario);
-
-        return ResponseEntity.ok(resposta);
+        return ResponseEntity.ok(
+                usuarioMapper.paraRespostaDTO(usuario)
+        );
     }
 
 
-
+    // ==========================================================
+    // POST - LOGIN
+    // ==========================================================
 
     @PostMapping("/login")
     public ResponseEntity<Object> login(

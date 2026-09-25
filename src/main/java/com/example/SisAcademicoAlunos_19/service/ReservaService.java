@@ -1,8 +1,11 @@
 package com.example.SisAcademicoAlunos_19.service;
 
 import com.example.SisAcademicoAlunos_19.exceptions.OperacaoNaoPermitidaException;
+import com.example.SisAcademicoAlunos_19.exceptions.ValidacaoException;
 import com.example.SisAcademicoAlunos_19.model.Reserva;
 import com.example.SisAcademicoAlunos_19.repository.ReservaRepository;
+import com.example.SisAcademicoAlunos_19.repository.StatusReservaRepository;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -14,13 +17,19 @@ import java.util.Optional;
 public class ReservaService
 {
     private final ReservaRepository reservaRepository;
+    private final StatusReservaRepository statusReservaRepository;
 
-    public ReservaService(ReservaRepository reservaRepository)
+    public ReservaService(
+            ReservaRepository reservaRepository,
+            StatusReservaRepository statusReservaRepository)
     {
         this.reservaRepository = reservaRepository;
+        this.statusReservaRepository = statusReservaRepository;
     }
 
-    // Cadastrar reserva
+
+
+
     public void inserirReserva(Reserva reserva)
     {
         validarData(reserva);
@@ -34,13 +43,16 @@ public class ReservaService
         reservaRepository.save(reserva);
     }
 
-    // Buscar reserva por ID
+
+
+
     public Optional<Reserva> pegarDadosReservaPorId(Integer id)
     {
         return reservaRepository.findById(id);
     }
 
-    // Atualizar reserva
+
+
     public void atualizarReserva(Reserva reserva)
     {
         validarData(reserva);
@@ -50,7 +62,9 @@ public class ReservaService
         validarRecurso(reserva);
 
         if (reserva.getStatus() != null &&
-                reserva.getStatus().getNome().equalsIgnoreCase("CANCELADA"))
+                reserva.getStatus()
+                        .getNome()
+                        .equalsIgnoreCase("CANCELADA"))
         {
             validarCancelamento(reserva);
         }
@@ -60,7 +74,9 @@ public class ReservaService
         reservaRepository.save(reserva);
     }
 
-    // Consultar reservas
+
+
+
     public List<Reserva> pesquisarReservas(
             Integer codigoRecurso,
             String nomeRecurso,
@@ -73,70 +89,107 @@ public class ReservaService
     {
         return reservaRepository.findAll()
                 .stream()
-                .filter(r -> codigoRecurso == null ||
-                        possuiCodigoRecurso(r, codigoRecurso))
-                .filter(r -> nomeRecurso == null ||
-                        possuiNomeRecurso(r, nomeRecurso))
-                .filter(r -> dataInicial == null ||
-                        !r.getDataInicial().isBefore(dataInicial))
-                .filter(r -> dataFinal == null ||
-                        !r.getDataFinal().isAfter(dataFinal))
-                .filter(r -> horaInicial == null ||
-                        !r.getHoraInicial().isBefore(horaInicial))
-                .filter(r -> horaFinal == null ||
-                        !r.getHoraFinal().isAfter(horaFinal))
-                .filter(r -> usuarioId == null ||
-                        r.getUsuario().getId().equals(usuarioId))
-                .filter(r -> statusCodigo == null ||
-                        r.getStatus().getCodigo().equals(statusCodigo))
+
+                .filter(r ->
+                        codigoRecurso == null ||
+                                possuiCodigoRecurso(
+                                        r,
+                                        codigoRecurso))
+
+                .filter(r ->
+                        nomeRecurso == null ||
+                                possuiNomeRecurso(
+                                        r,
+                                        nomeRecurso))
+
+                .filter(r ->
+                        dataInicial == null ||
+                                !r.getDataInicial()
+                                        .isBefore(dataInicial))
+
+                .filter(r ->
+                        dataFinal == null ||
+                                !r.getDataFinal()
+                                        .isAfter(dataFinal))
+
+                .filter(r ->
+                        horaInicial == null ||
+                                !r.getHoraInicial()
+                                        .isBefore(horaInicial))
+
+                .filter(r ->
+                        horaFinal == null ||
+                                !r.getHoraFinal()
+                                        .isAfter(horaFinal))
+
+                .filter(r ->
+                        usuarioId == null ||
+                                r.getUsuario()
+                                        .getId()
+                                        .equals(usuarioId))
+
+                .filter(r ->
+                        statusCodigo == null ||
+                                r.getStatus()
+                                        .getCodigo()
+                                        .equals(statusCodigo))
+
                 .toList();
     }
 
-    // =========================================================
-    // VALIDAÇÕES
-    // =========================================================
+
+
 
     private void validarData(Reserva reserva)
     {
         if (reserva.getDataInicial() == null ||
                 reserva.getDataFinal() == null)
         {
-            throw new OperacaoNaoPermitidaException(
-                    "Data inicial e final são obrigatórias.");
+            throw new ValidacaoException(
+                    "Campo obrigatório"
+            );
         }
 
-        if (reserva.getDataFinal().isBefore(
-                reserva.getDataInicial()))
+        if (reserva.getDataFinal()
+                .isBefore(reserva.getDataInicial()))
         {
-            throw new OperacaoNaoPermitidaException(
-                    "Data Final precisa ser maior ou igual à Data Inicial");
+            throw new ValidacaoException(
+                    "Data Final precisa ser maior ou igual à Data Inicial"
+            );
         }
 
         // A reserva é diária
-        if (!reserva.getDataInicial().equals(
-                reserva.getDataFinal()))
+        if (!reserva.getDataInicial()
+                .equals(reserva.getDataFinal()))
         {
-            throw new OperacaoNaoPermitidaException(
-                    "A reserva é diária/por dia");
+            throw new ValidacaoException(
+                    "A reserva é diária/por dia"
+            );
         }
     }
+
+
 
     private void validarHorario(Reserva reserva)
     {
         if (reserva.getHoraInicial() == null ||
                 reserva.getHoraFinal() == null)
         {
-            throw new OperacaoNaoPermitidaException(
-                    "Hora inicial e final são obrigatórias.");
+            throw new ValidacaoException(
+                    "Campo obrigatório"
+            );
         }
 
-        if (!reserva.getHoraFinal().isAfter(
-                reserva.getHoraInicial()))
+        if (!reserva.getHoraFinal()
+                .isAfter(reserva.getHoraInicial()))
         {
-            throw new OperacaoNaoPermitidaException(
-                    "Hora Final precisa ser maior que a Hora Inicial");
+            throw new ValidacaoException(
+                    "Hora Final precisa ser maior que a Hora Inicial"
+            );
         }
     }
+
+
 
     private void validarRecurso(Reserva reserva)
     {
@@ -144,79 +197,90 @@ public class ReservaService
                 reserva.getSala() == null)
         {
             throw new OperacaoNaoPermitidaException(
-                    "É necessário informar um laboratório ou uma sala.");
+                    "É necessário informar um laboratório ou uma sala."
+            );
         }
 
         if (reserva.getLaboratorio() != null &&
                 reserva.getSala() != null)
         {
             throw new OperacaoNaoPermitidaException(
-                    "A reserva deve possuir apenas um recurso.");
+                    "A reserva deve possuir apenas um recurso."
+            );
         }
 
-        // BLOQUEADO não pode ser reservado
+        // Laboratório bloqueado
         if (reserva.getLaboratorio() != null &&
                 reserva.getLaboratorio().getStatus() != null &&
-                reserva.getLaboratorio().getStatus()
-                        .getNome().equalsIgnoreCase("BLOQUEADO"))
+                reserva.getLaboratorio()
+                        .getStatus()
+                        .getNome()
+                        .equalsIgnoreCase("BLOQUEADO"))
         {
             throw new OperacaoNaoPermitidaException(
-                    "O laboratório está bloqueado e não pode ser reservado.");
+                    "O laboratório está bloqueado e não pode ser reservado."
+            );
         }
 
+        // Sala bloqueada
         if (reserva.getSala() != null &&
                 reserva.getSala().getStatus() != null &&
-                reserva.getSala().getStatus()
-                        .getNome().equalsIgnoreCase("BLOQUEADO"))
+                reserva.getSala()
+                        .getStatus()
+                        .getNome()
+                        .equalsIgnoreCase("BLOQUEADO"))
         {
             throw new OperacaoNaoPermitidaException(
-                    "A sala está bloqueada e não pode ser reservada.");
+                    "A sala está bloqueada e não pode ser reservada."
+            );
         }
     }
 
+
+    // ==========================================================
+    // CONFLITO DE RESERVA
+    // ==========================================================
+
     private void verificarConflito(Reserva reserva)
     {
-        if (reserva.getStatus() != null &&
-                reserva.getStatus().getNome().equalsIgnoreCase("CANCELADA"))
-        {
-            return;
-        }
-
         List<Reserva> reservasExistentes;
 
         if (reserva.getLaboratorio() != null)
         {
             reservasExistentes =
                     reservaRepository
-                            .findByLaboratorioCodigo(
-                                    reserva.getLaboratorio().getCodigo());
+                            .findByLaboratorioCodigoAndDataInicial(
+                                    reserva.getLaboratorio()
+                                            .getCodigo(),
+                                    reserva.getDataInicial()
+                            );
         }
         else
         {
             reservasExistentes =
                     reservaRepository
-                            .findBySalaCodigo(
-                                    reserva.getSala().getCodigo());
+                            .findBySalaCodigoAndDataInicial(
+                                    reserva.getSala()
+                                            .getCodigo(),
+                                    reserva.getDataInicial()
+                            );
         }
 
         for (Reserva existente : reservasExistentes)
         {
-            // Não comparar a própria reserva durante o PUT
+            // Ignorar a própria reserva no PUT
             if (reserva.getId() != null &&
-                    reserva.getId().equals(existente.getId()))
+                    reserva.getId()
+                            .equals(existente.getId()))
             {
                 continue;
             }
 
+            // Reserva cancelada não ocupa o horário
             if (existente.getStatus() != null &&
-                    existente.getStatus().getNome()
+                    existente.getStatus()
+                            .getNome()
                             .equalsIgnoreCase("CANCELADA"))
-            {
-                continue;
-            }
-
-            if (!existente.getDataInicial().equals(
-                    reserva.getDataInicial()))
             {
                 continue;
             }
@@ -231,10 +295,16 @@ public class ReservaService
             if (conflito)
             {
                 throw new OperacaoNaoPermitidaException(
-                        "O recurso já possui uma reserva nesse período.");
+                        "O recurso já possui uma reserva nesse período."
+                );
             }
         }
     }
+
+
+    // ==========================================================
+    // CANCELAMENTO COM 24 HORAS
+    // ==========================================================
 
     private void validarCancelamento(Reserva reserva)
     {
@@ -243,39 +313,108 @@ public class ReservaService
                         reserva.getDataInicial(),
                         reserva.getHoraInicial());
 
-        LocalDateTime agora = LocalDateTime.now();
+        LocalDateTime limite =
+                LocalDateTime.now()
+                        .plusHours(24);
 
-        long horasRestantes =
-                Duration.between(agora, inicioReserva).toHours();
-
-        if (horasRestantes < 24)
+        if (inicioReserva.isBefore(limite))
         {
             throw new OperacaoNaoPermitidaException(
-                    "O cancelamento só pode ser realizado com pelo menos 24 horas de antecedência.");
+                    "O cancelamento só pode ser realizado com pelo menos 24 horas de antecedência."
+            );
         }
     }
+
+
+    // ==========================================================
+    // RESERVAS CONCLUÍDAS AUTOMATICAMENTE
+    // Executado a cada 1 minuto
+    // ==========================================================
+
+    @Scheduled(fixedRate = 60000)
+    public void atualizarReservasConcluidas()
+    {
+        var statusAtiva =
+                statusReservaRepository
+                        .findByNome("ATIVA");
+
+        var statusConcluida =
+                statusReservaRepository
+                        .findByNome("CONCLUÍDA");
+
+        if (statusAtiva.isEmpty() ||
+                statusConcluida.isEmpty())
+        {
+            return;
+        }
+
+        List<Reserva> reservasAtivas =
+                reservaRepository.findByStatus(
+                        statusAtiva.get());
+
+        LocalDateTime agora =
+                LocalDateTime.now();
+
+        for (Reserva reserva : reservasAtivas)
+        {
+            LocalDateTime fimReserva =
+                    LocalDateTime.of(
+                            reserva.getDataFinal(),
+                            reserva.getHoraFinal());
+
+            LocalDateTime momentoConclusao =
+                    fimReserva.plusMinutes(1);
+
+            if (!agora.isBefore(momentoConclusao))
+            {
+                reserva.setStatus(
+                        statusConcluida.get()
+                );
+
+                reservaRepository.save(reserva);
+            }
+        }
+    }
+
+
+    // ==========================================================
+    // VERIFICAR CÓDIGO DO RECURSO
+    // ==========================================================
 
     private boolean possuiCodigoRecurso(
             Reserva reserva,
             Integer codigo)
     {
-        return (reserva.getLaboratorio() != null &&
-                reserva.getLaboratorio().getCodigo().equals(codigo))
-                ||
-                (reserva.getSala() != null &&
-                        reserva.getSala().getCodigo().equals(codigo));
+        return
+                (reserva.getLaboratorio() != null &&
+                        reserva.getLaboratorio()
+                                .getCodigo()
+                                .equals(codigo))
+                        ||
+                        (reserva.getSala() != null &&
+                                reserva.getSala()
+                                        .getCodigo()
+                                        .equals(codigo));
     }
+
+
+    // ==========================================================
+    // VERIFICAR NOME DO RECURSO
+    // ==========================================================
 
     private boolean possuiNomeRecurso(
             Reserva reserva,
             String nome)
     {
-        return (reserva.getLaboratorio() != null &&
-                reserva.getLaboratorio().getNome()
-                        .equalsIgnoreCase(nome))
-                ||
-                (reserva.getSala() != null &&
-                        reserva.getSala().getNome()
-                                .equalsIgnoreCase(nome));
+        return
+                (reserva.getLaboratorio() != null &&
+                        reserva.getLaboratorio()
+                                .getNome()
+                                .equalsIgnoreCase(nome))
+                        ||
+                        (reserva.getSala() != null &&
+                                reserva.getSala()
+                                        .getNome()
+                                        .equalsIgnoreCase(nome));
     }
 }
