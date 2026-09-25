@@ -4,7 +4,7 @@ spring:
   datasource:
     url: jdbc:sqlserver://regulus.cotuca.unicamp.br:1433;databaseName=BD24151;encrypt=true;trustServerCertificate=true
     username: "BD24151"
-    password: "Rx7_1232"
+    password: "------"
     drive-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
   jpa:
     show-sql: true
